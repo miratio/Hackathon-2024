@@ -22,12 +22,20 @@ app = Flask(__name__, template_folder='.')
 # Speech resource (required)
 speech_region = "westus2"
 speech_key = "52d305ceebb64cb9bb1033041d73a409"
-azure_openai_deployment_name = None
-cognitive_search_index_name = None
-cognitive_search_endpoint = None
-cognitive_search_api_key = None
+speech_private_endpoint = None
+# OpenAI resource (required for chat scenario)
 azure_openai_endpoint = None
 azure_openai_api_key = None
+azure_openai_deployment_name = None
+# Cognitive search resource (optional, only required for 'on your data' scenario)
+cognitive_search_endpoint = None
+cognitive_search_api_key = None
+cognitive_search_index_name = None
+# Customized ICE server (optional, only required for customized ICE server)
+ice_server_url = None
+ice_server_url_remote = None
+ice_server_username = None
+ice_server_password = None
 
 
 # Const variables
@@ -65,6 +73,19 @@ def getSpeechToken() -> Response:
     response.headers['SpeechRegion'] = speech_region
     return response
 
+
+# The API route to get the ICE token
+@app.route("/api/getIceToken", methods=["GET"])
+def getIceToken() -> Response:
+    # Apply customized ICE server if provided
+    if ice_server_url and ice_server_username and ice_server_password:
+        custom_ice_token = json.dumps({
+            'Urls': [ ice_server_url ],
+            'Username': ice_server_username,
+            'Password': ice_server_password
+        })
+        return Response(custom_ice_token, status=200)
+    return Response(ice_token, status=200)
 
 # The API route to connect the TTS avatar
 @app.route("/api/connectAvatar", methods=["POST"])
